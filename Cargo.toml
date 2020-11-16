@@ -1,0 +1,15 @@
+[package]
+name = "drash"
+version = "0.1.0"
+authors = ["Edward Bebbington <EdwardSBebbington@hotmail.com>"]
+edition = "2018"
+
+[[bin]]
+name = "drash"
+path = "src/main.rs"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+regex = "1"
+bufstream = "0.1"

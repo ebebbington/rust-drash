@@ -1,2 +1,8 @@
-# rust-drash
-Rust Implementation of Deno-Drash
+# Getting Started
+
+```
+$ cargo run
+# or
+$ cargo build --release
+$ target/release/drash
+```
