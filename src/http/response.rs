@@ -2,9 +2,11 @@ use std::net::TcpStream;
 use std::io::prelude::*;
 use std::fs;
 
-pub struct Response;
+pub struct Response {
+    pub stream: TcpStream
+}
 impl Response {
-    pub fn write_response (mut stream: &TcpStream, true_response: Response) {
+    pub fn write_response (&mut self, true_response: &Response) {
         //let contents = fs::read_to_string("index.html").unwrap();
         let contents = String::from("hello");
 
@@ -14,7 +16,12 @@ impl Response {
             contents
         );
 
-        stream.write_all(response.as_bytes()).unwrap();
-        stream.flush().unwrap();
+        self.stream.write_all(response.as_bytes()).unwrap();
+        self.stream.flush().unwrap();
     }
+}
+
+pub fn new (stream: TcpStream) -> Response {
+    let Response = Response { stream };
+    Response
 }

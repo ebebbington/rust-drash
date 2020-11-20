@@ -16,20 +16,20 @@ pub struct HttpOptions {
   pub port: u32
 }
 
-pub struct Server<'a> {
+pub struct Server {
     pub resources: Vec<Resource::Resource>,
-    pub options: &'a HttpOptions
+    //pub options: &'a HttpOptions
 }
 
-impl Server<'_> {
+impl Server {
 
-    pub fn run(&self) {
-        let port_str: &String = &self.options.port.to_string();
-        let address = format!("{}:{}", &self.options.hostname, port_str);
+    pub fn run(&self, options: &HttpOptions) {
+        let port_str: &String = &options.port.to_string();
+        let address = format!("{}:{}", options.hostname, port_str);
         let listener = TcpListener::bind(address).unwrap();
 
         for stream in listener.incoming() {
-            let stream = stream.unwrap();
+            let mut stream = stream.unwrap();
             self.handle_http_request(stream)
             //Response::write_response(&stream); //single threaded
             // thread::spawn(|| {  // multi threaded
@@ -42,21 +42,24 @@ impl Server<'_> {
     fn handle_http_request (&self, mut stream: TcpStream) {
         let mut buffer = [0; 1024];
         stream.read(&mut buffer).unwrap();
-        let request_data = String::from_utf8_lossy(&buffer[..]);
+        let request = String::from_utf8_lossy(&buffer[..]);
+        let Request = Http::Request::new(&request);
         'outer: for resource in &self.resources {
             for path in &resource.paths {
-                let formatted = format!(r"{} HTTP/1.1", path);
-                let regex = Regex::new(formatted.as_str()).unwrap();
-                if regex.is_match(&request_data) {
+                if path == &Request.path {
+                //let formatted = format!(r"{} HTTP/1.1", path);
+                //let regex = Regex::new(formatted.as_str()).unwrap();
+                //if regex.is_match(&request_data) {
                     for (method, func) in &resource.methods {
-                        let regex_two = Regex::new(format!(r"{} {} HTTP/1.1", method, path).as_str()).unwrap();
-                        if regex_two.is_match(&request_data) {
-                            let request = Request::Request {
-                                stream: &stream
-                            };
-                            let response = Http::Response::Response;
-                            let true_response = func(request, response);
-                            Http::Response::Response::write_response(&stream, true_response);
+                        //let regex_two = Regex::new(format!(r"{} {} HTTP/1.1", method, path).as_str()).unwrap();
+                        //if regex_two.is_match(&request_data) {
+                        if method == &Request.method {
+                            // let request = Request::Request {
+                            //     stream: &stream
+                            // };
+                            let mut Response = Http::Response::new(stream);
+                            let true_response = func(Request, &Response);
+                            &mut Response.write_response(&true_response);
                             break 'outer;
                         }
                     }
@@ -64,4 +67,8 @@ impl Server<'_> {
             }
         }
     }
+}
+
+pub fn new (resources: Vec<Http::Resource::Resource>) -> Server {
+    Server { resources }
 }

@@ -113,30 +113,36 @@ impl Worker {
 
 fn main () {
 
-    fn GET (request: Http::Request::Request, response: Http::Response::Response) -> Http::Response::Response {
+    // Create a resource
+    fn GET (request: Http::Request::Request, response: &Http::Response::Response) -> &Http::Response::Response {
         return response;
     }
-    let mut home_resource_methods: Http::Resource::ResourceMethods = HashMap::new();
-    home_resource_methods.insert(String::from("GET"), GET);
-    let home_resource = Http::Resource::Resource {
-        paths: vec![
+    // let mut home_resource_methods: Http::Resource::ResourceMethods = HashMap::new();
+    // home_resource_methods.insert(String::from("GET"), GET);
+    let home_resource = Http::Resource::new(
+        vec![
             String::from("/")
         ],
-        methods: home_resource_methods
-    };
+        [(String::from("GET"), GET)]
+        // .iter()
+        // .cloned()
+        // .collect()
+    );
 
+    // Create server
     let options = &Http::Server::HttpOptions {
         hostname: String::from("0.0.0.0"),
         port: 1334
     };
-    let server = Http::Server::Server {
-        resources: vec![
+    let server = Http::Server::new(
+        vec![
             home_resource
         ],
-        options
-    };
+    );
 
-    server.run();
+    // Run the server
+    server.run(options);
+    println!("Server is running on http://{}:{}", options.hostname, options.port)
 
     // let listener = TcpListener::bind(String::from("0.0.0.0:1334")).unwrap();
     // for stream in listener.incoming() {

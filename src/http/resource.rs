@@ -2,14 +2,21 @@ use crate::Http;
 use std::fmt;
 use std::collections::HashMap;
 
-pub type ResourceMethods =  HashMap<String, fn(Http::Request::Request, Http::Response::Response) -> Http::Response::Response>;
+type COUNT = u32;
+
+//pub type ResourceMethods =  HashMap<String, fn(Http::Request::Request, &Http::Response::Response) -> &Http::Response::Response>;
+pub type ResourceMethods = [(String, fn(Http::Request::Request, &Http::Response::Response) -> &Http::Response::Response)];
 
 pub struct Resource {
     pub paths: Vec<String>,
-    pub methods: ResourceMethods
+    pub methods: OneResourceMethod
 }
 impl Resource {
 
+}
+
+pub fn new (paths: Vec<String>, methods: ResourceMethods) -> Resource {
+    Resource { paths, methods }
 }
 // impl fmt::Display for Resource {
 //     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
