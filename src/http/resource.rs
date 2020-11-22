@@ -1,20 +1,14 @@
-use crate::Http;
+use crate::http;
 //use std::fmt;
 use std::collections::HashMap;
 
-type COUNT = u32;
-
-pub type ResourceMethods =  HashMap<String, fn(Http::Request::Request, &Http::Response::Response) -> &Http::Response::Response>;
+pub type ResourceMethods =  HashMap<String, fn(http::request::Request, &http::response::Response) -> &http::response::Response>;
 //pub type ResourceMethods = [(String, fn(Http::Request::Request, &Http::Response::Response) -> &Http::Response::Response)];
 
-pub struct Methods {
-    pub GET: Option<fn(Http::Request::Request, &Http::Response::Response) -> &Http::Response::Response>
-}
-
-pub struct ResourceTwoStruct {
-    request: Http::Request::Request,
-    response: Http::Response::Response
-}
+// pub struct ResourceTwoStruct {
+//     request: Http::Request::Request,
+//     response: Http::Response::Response
+// }
 
 pub struct Resource {
     pub paths: Vec<String>,

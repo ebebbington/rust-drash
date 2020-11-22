@@ -4,12 +4,11 @@ use std::io::prelude::*;
 use std::net::TcpStream;
 //use std::thread;
 //use crate::Http::Request;
-use crate::Http::Resource;
+use crate::http;
 //use crate::Http::Response;
 //use std::stringify;
 //use regex::Regex;
 //use std::result::Result;
-use crate::Http;
 
 pub struct HttpOptions {
   pub hostname: String,
@@ -17,11 +16,11 @@ pub struct HttpOptions {
 }
 
 pub struct Configs {
-    pub resources: Vec<Http::Resource::Resource>
+    pub resources: Vec<http::resource::Resource>
 }
 
 pub struct Server {
-    pub resources: Vec<Resource::Resource>,
+    pub resources: Vec<http::resource::Resource>,
     //pub options: &'a HttpOptions
 }
 
@@ -34,7 +33,7 @@ impl Server {
         let listener = TcpListener::bind(address).unwrap();
 
         for stream in listener.incoming() {
-            let mut stream = stream.unwrap();
+            let stream = stream.unwrap();
             self.handle_http_request(stream)
         }
     }
@@ -42,13 +41,13 @@ impl Server {
     fn handle_http_request (&self, mut stream: TcpStream) {
         let mut buffer = [0; 1024];
         stream.read(&mut buffer).unwrap();
-        let request = String::from_utf8_lossy(&buffer[..]);
-        let Request = Http::Request::new(&request);
+        let request_data = String::from_utf8_lossy(&buffer[..]);
+        let request = http::request::new(&request_data);
         let mut found = false;
         'outer: for resource in &self.resources {
             for path in &resource.paths {
-                println!("resource path: {}. req path: {}", path, &Request.path);
-                if path != &Request.path {
+                println!("resource path: {}. req path: {}", path, &request.path);
+                if path != &request.path {
                     continue;
                 }
                 //let formatted = format!(r"{} HTTP/1.1", path);
@@ -57,16 +56,16 @@ impl Server {
                 for (method, func) in &resource.methods {
                     //let regex_two = Regex::new(format!(r"{} {} HTTP/1.1", method, path).as_str()).unwrap();
                     //if regex_two.is_match(&request_data) {
-                    if method != &Request.method {
+                    if &method.to_lowercase() != &request.method.to_lowercase() {
                         continue;
                     }
                     // let request = Request::Request {
                     //     stream: &stream
                     // };
                     found = true;
-                    let mut Response = Http::Response::new(stream);
-                    func(Request, &mut Response); // Should change the body of the Response
-                    Response.write_response();
+                    let mut response = http::response::new(stream);
+                    func(request, &mut response); // Should change the body of the Response
+                    response.write_response();
                     break 'outer;
                 }
             }

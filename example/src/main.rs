@@ -1,5 +1,5 @@
-#[path = "http.rs"]
-mod Http;
+extern crate drash;
+
 use std::collections::HashMap;
 //use std::net::TcpListener;
 //use std::net::Incoming;
@@ -114,13 +114,13 @@ impl Worker {
 fn main () {
 
     // Create a resource
-    fn GET (request: Http::Request::Request, response: &Http::Response::Response) -> &Http::Response::Response {
+    fn get (_request: drash::http::request::Request, response: &drash::http::response::Response) -> &drash::http::response::Response {
         println!("GET HomeResource");
         return response;
     }
     let mut home_resource_methods = HashMap::new();
-    home_resource_methods.insert(String::from("GET"), GET as fn(request: Http::Request::Request, response: &Http::Response::Response) -> &Http::Response::Response);
-    let home_resource = Http::Resource::new(
+    home_resource_methods.insert(String::from("get"), get as fn(request: drash::http::request::Request, response: &drash::http::response::Response) -> &drash::http::response::Response);
+    let home_resource = drash::http::resource::new(
         vec![
             String::from("/")
         ],
@@ -128,17 +128,17 @@ fn main () {
     );
 
     // Create server
-    let server_configs = Http::Server::Configs {
+    let server_configs = drash::http::server::Configs {
         resources: vec![
             home_resource
         ]
     };
-    let server = Http::Server::new(
+    let server = drash::http::server::new(
         server_configs
     );
 
     // Run the server
-    let options = &Http::Server::HttpOptions {
+    let options = &drash::http::server::HttpOptions {
         hostname: String::from("0.0.0.0"),
         port: 1334
     };

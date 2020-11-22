@@ -1,8 +1,8 @@
 #[path = "http/server.rs"]
-pub mod Server;
+pub mod server;
 #[path = "http/request.rs"]
-pub mod Request;
+pub mod request;
 #[path = "http/response.rs"]
-pub mod Response;
+pub mod response;
 #[path = "http/resource.rs"]
-pub mod Resource;
+pub mod resource;

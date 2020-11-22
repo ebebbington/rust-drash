@@ -23,6 +23,6 @@ impl Response {
 }
 
 pub fn new (stream: TcpStream) -> Response {
-    let Response = Response { stream, body: String::from("") };
-    Response
+    let response = Response { stream, body: String::from("") };
+    response
 }

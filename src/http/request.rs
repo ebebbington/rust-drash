@@ -26,6 +26,6 @@ pub fn new (request: &str) -> Request {
     let path = String::from(parts.next().as_deref().unwrap_or(""));
     let http_version = String::from(parts.next().as_deref().unwrap_or(""));
     let time = Local::now();
-    let Request = Request { method, path, http_version, time };
-    Request
+    let request = Request { method, path, http_version, time };
+    request
 }
