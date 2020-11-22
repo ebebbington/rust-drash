@@ -1,14 +1,15 @@
 use std::net::TcpStream;
 use std::io::prelude::*;
-use std::fs;
+//use std::fs;
 
 pub struct Response {
-    pub stream: TcpStream
+    pub stream: TcpStream,
+    pub body: String
 }
 impl Response {
-    pub fn write_response (&mut self, true_response: &Response) {
+    pub fn write_response (&mut self) {
         //let contents = fs::read_to_string("index.html").unwrap();
-        let contents = String::from("hello");
+        let contents = String::from(&self.body);
 
         let response = format!(
             "HTTP/1.1 200 OK\r\nContent-Length: {}\r\n\r\n{}",
@@ -22,6 +23,6 @@ impl Response {
 }
 
 pub fn new (stream: TcpStream) -> Response {
-    let Response = Response { stream };
+    let Response = Response { stream, body: String::from("") };
     Response
 }
