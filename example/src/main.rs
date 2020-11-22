@@ -1,131 +1,24 @@
 extern crate drash;
 
-use std::collections::HashMap;
-//use std::net::TcpListener;
-//use std::net::Incoming;
+#[path = "resources.rs"]
+mod resources;
+
+//mod resources;
+//use crate::resources;
 //use std::io::prelude::*;
-//use std::net::TcpStream;
-use std::thread;
-//use std::fs::File;
-//use std::io::{self, prelude::*, BufReader};
-//use bufstream::BufStream;
-
-use std::sync::mpsc;
-use std::sync::Arc;
-use std::sync::Mutex;
-
-pub struct ThreadPool {
-    workers: Vec<Worker>,
-    sender: mpsc::Sender<Message>,
-}
-
-type Job = Box<dyn FnOnce() + Send + 'static>;
-
-enum Message {
-    NewJob(Job),
-    Terminate,
-}
-
-impl ThreadPool {
-    /// Create a new ThreadPool.
-    ///
-    /// The size is the number of threads in the pool.
-    ///
-    /// # Panics
-    ///
-    /// The `new` function will panic if the size is zero.
-    pub fn new(size: usize) -> ThreadPool {
-        assert!(size > 0);
-
-        let (sender, receiver) = mpsc::channel();
-
-        let receiver = Arc::new(Mutex::new(receiver));
-
-        let mut workers = Vec::with_capacity(size);
-
-        for id in 0..size {
-            workers.push(Worker::new(id, Arc::clone(&receiver)));
-        }
-
-        ThreadPool { workers, sender }
-    }
-
-    pub fn execute<F>(&self, f: F)
-        where
-            F: FnOnce() + Send + 'static,
-    {
-        let job = Box::new(f);
-
-        self.sender.send(Message::NewJob(job)).unwrap();
-    }
-}
-
-impl Drop for ThreadPool {
-    fn drop(&mut self) {
-        println!("Sending terminate message to all workers.");
-
-        for _ in &self.workers {
-            self.sender.send(Message::Terminate).unwrap();
-        }
-
-        println!("Shutting down all workers.");
-
-        for worker in &mut self.workers {
-            println!("Shutting down worker {}", worker.id);
-
-            if let Some(thread) = worker.thread.take() {
-                thread.join().unwrap();
-            }
-        }
-    }
-}
-
-struct Worker {
-    id: usize,
-    thread: Option<thread::JoinHandle<()>>,
-}
-
-impl Worker {
-    fn new(id: usize, receiver: Arc<Mutex<mpsc::Receiver<Message>>>) -> Worker {
-        let thread = thread::spawn(move || loop {
-            let message = receiver.lock().unwrap().recv().unwrap();
-
-            match message {
-                Message::NewJob(job) => {
-                    println!("Worker {} got a job; executing.", id);
-
-                    job();
-                }
-                Message::Terminate => {
-                    println!("Worker {} was told to terminate.", id);
-
-                    break;
-                }
-            }
-        });
-
-        Worker {
-            id,
-            thread: Some(thread),
-        }
-    }
-}
+//use std::io::BufReader;
+//use std::net::{TcpListener, TcpStream};
+//use std::io::Write;
+//use std::io::Read;
+//use std::thread;
+//use std::sync::mpsc;
+//use std::sync::Arc;
+//use std::sync::Mutex;
 
 fn main () {
 
     // Create a resource
-    fn get (_request: drash::http::request::Request, response: &drash::http::response::Response) -> &drash::http::response::Response {
-        println!("GET HomeResource");
-        return response;
-    }
-    let mut home_resource_methods = HashMap::new();
-    home_resource_methods.insert(String::from("get"), get as fn(request: drash::http::request::Request, response: &drash::http::response::Response) -> &drash::http::response::Response);
-    let home_resource = drash::http::resource::new(
-        vec![
-            String::from("/")
-        ],
-        home_resource_methods
-    );
+    let home_resource = resources::home_resource::home_resource();
 
     // Create server
     let server_configs = drash::http::server::Configs {
@@ -143,63 +36,33 @@ fn main () {
         port: 1334
     };
     server.run(options);
-    println!("Server is running on http://{}:{}", options.hostname, options.port)
 
     // let listener = TcpListener::bind(String::from("0.0.0.0:1334")).unwrap();
     // for stream in listener.incoming() {
     //     let mut stream = stream.unwrap();
-    //     let mut buffer = [0; 1024];
-    //     stream.read(&mut buffer).unwrap();
-    //     let contents = String::from("hello");
-    //     let response = format!(
-    //         "HTTP/1.1 200 OK\r\nContent-Length: {}\r\n\r\n{}",
-    //         contents.len(),
-    //         contents
-    //     );
-    //     stream.write_all(response.as_bytes()).unwrap();
-    //     stream.flush().unwrap();
-    // }
-
-    // let listener = TcpListener::bind("0.0.0.0:7878").unwrap();
-    // let pool = ThreadPool::new(4);
-    //
-    // for stream in listener.incoming() {
-    //     pool.execute(move || {
-    //         let mut stream = stream.unwrap();
+    //     thread::spawn(move || {
     //         let mut buffer = [0; 1024];
-    //         &stream.read(&mut buffer).unwrap();
-    //
+    //         stream.read(&mut buffer).unwrap();
+    //         println!("Start of buffer:");
+    //         println!("{}", String::from_utf8_lossy(&buffer[..]));
+    //         println!("End of buffer.");
     //         let contents = String::from("hello");
     //         let response = format!(
     //             "HTTP/1.1 200 OK\r\nContent-Length: {}\r\n\r\n{}",
     //             contents.len(),
     //             contents
     //         );
+    //         // println!("start");
+    //         // for header in BufReader::new(&mut stream).lines() {
+    //         //     let header = header.unwrap();
+    //         //     println!("{}", header);
+    //         //     if header == "" {
+    //         //         break
+    //         //     }
+    //         // }
+    //         // println!("endd");
     //         stream.write_all(response.as_bytes()).unwrap();
     //         stream.flush().unwrap();
     //     });
     // }
-
-    // let listener = TcpListener::bind("0.0.0.0:7878").unwrap();
-    //
-    // for stream in listener.incoming() {
-    //     let stream = stream.unwrap();
-    //     //thread::spawn(|| {
-    //         handle_client(stream);
-    //     //});
-    // }
 }
-
-// fn handle_client(mut stream: TcpStream) {
-//     // Read all the headers
-//     for header in BufReader::new(&mut stream).lines() {
-//         println!("{:?}", header);
-//         let header = header.unwrap();
-//         if header == "\r" { break }
-//         if header == "" { break }
-//     }
-//
-//     // Write our response
-//     stream.write_all(b"HTTP/1.0 200 OK\r\n\r\nhello").unwrap();
-//     stream.flush().unwrap()
-// }
